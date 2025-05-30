@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathwayz - Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            min-height: 44px;
+            position: relative;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cell.wall {
+            background: #333;
+        }
+
+        .cell.number {
+            background: #4f46e5;
+            color: white;
+            border: 3px solid #4f46e5;
+        }
+
+        .cell.visited {
+            background: #10b981;
+            border: 3px solid #10b981;
+        }
+
+        .cell.current {
+            background: #f59e0b;
+            border: 3px solid #f59e0b;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .cell.path {
+            background: #93c5fd;
+            border: 2px solid #3b82f6;
+        }
+
+        .cell.hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .status-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .next-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-top: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 44px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+            transform: translateY(-1px);
+        }
+
+        .win-message {
+            background: #10b981;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 16px;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 16px;
+                margin: 0 16px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .cell {
+                font-size: 16px;
+                min-height: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="title">Pathwayz</div>
+            <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
+        </div>
+
+        <div class="status">
+            <div class="status-text">Find number:</div>
+            <div class="next-number" id="next-number">1</div>
+        </div>
+
+        <div class="grid" id="game-grid"></div>
+
+        <div class="controls">
+            <button class="btn btn-secondary" id="reset-btn">Reset</button>
+            <button class="btn btn-primary" id="hint-btn">Hint</button>
+        </div>
+
+        <div class="win-message" id="win-message">
+            🎉 Puzzle Complete! Well done!
+        </div>
+    </div>
+
+    <script>
+        // Game configuration
+        const PUZZLE = {
+            size: 6,
+            numbers: [
+                {num: 1, x: 0, y: 0},
+                {num: 2, x: 2, y: 1}, 
+                {num: 3, x: 4, y: 2},
+                {num: 4, x: 1, y: 3},
+                {num: 5, x: 3, y: 4},
+                {num: 6, x: 5, y: 5}
+            ],
+            walls: [
+                {x: 1, y: 1},
+                {x: 3, y: 2}
+            ]
+        };
+
+        // Game state
+        let gameState = {
+            currentNumber: 1,
+            path: [],
+            visited: new Set(),
+            isDrawing: false,
+            gameWon: false
+        };
+
+        // DOM elements
+        const grid = document.getElementById('game-grid');
+        const nextNumberEl = document.getElementById('next-number');
+        const resetBtn = document.getElementById('reset-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const winMessage = document.getElementById('win-message');
+
+        // Initialize game
+        function initGame() {
+            createGrid();
+            resetGame();
+            
+            // Add event listeners
+            resetBtn.addEventListener('click', resetGame);
+            hintBtn.addEventListener('click', showHint);
+            
+            // Prevent scrolling on touch
+            document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+        }
+
+        function createGrid() {
+            grid.innerHTML = '';
+            
+            for (let y = 0; y < PUZZLE.size; y++) {
+                for (let x = 0; x < PUZZLE.size; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.dataset.index = y * PUZZLE.size + x;
+                    
+                    // Check if cell is a wall
+                    const isWall = PUZZLE.walls.some(wall => wall.x === x && wall.y === y);
+                    if (isWall) {
+                        cell.classList.add('wall');
+                    }
+                    
+                    // Check if cell has a number
+                    const numberData = PUZZLE.numbers.find(num => num.x === x && num.y === y);
+                    if (numberData) {
+                        cell.textContent = numberData.num;
+                        cell.classList.add('number');
+                        cell.dataset.number = numberData.num;
+                    }
+                    
+                    // Add event listeners for both touch and mouse
+                    cell.addEventListener('mousedown', handleCellStart);
+                    cell.addEventListener('mouseenter', handleCellEnter);
+                    cell.addEventListener('mouseup', handleCellEnd);
+                    
+                    cell.addEventListener('touchstart', handleCellStart);
+                    cell.addEventListener('touchmove', handleTouchMove);
+                    cell.addEventListener('touchend', handleCellEnd);
+                    
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellStart(e) {
+            e.preventDefault();
+            const cell = e.target;
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            
+            if (isValidStartCell(x, y)) {
+                gameState.isDrawing = true;
+                visitCell(x, y);
+                cell.classList.add('hover');
+            }
+        }
+
+        function handleCellEnter(e) {
+            if (!gameState.isDrawing) return;
+            
+            const cell = e.target;
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            
+            if (isValidMove(x, y)) {
+                visitCell(x, y);
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (element && element.classList.contains('cell') && gameState.isDrawing) {
+                const x = parseInt(element.dataset.x);
+                const y = parseInt(element.dataset.y);
+                
+                if (isValidMove(x, y)) {
+                    visitCell(x, y);
+                }
+            }
+        }
+
+        function handleCellEnd(e) {
+            e.preventDefault();
+            gameState.isDrawing = false;
+            
+            // Remove hover effects
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('hover');
+            });
+        }
+
+        function isValidStartCell(x, y) {
+            if (gameState.gameWon) return false;
+            
+            // Must start with the current number we're looking for
+            const cell = getCellAt(x, y);
+            const cellNumber = parseInt(cell.dataset.number);
+            
+            return cellNumber === gameState.currentNumber;
+        }
+
+        function isValidMove(x, y) {
+            if (gameState.gameWon) return false;
+            
+            const cell = getCellAt(x, y);
+            if (!cell || cell.classList.contains('wall')) return false;
+            
+            // Already visited
+            const cellKey = `${x},${y}`;
+            if (gameState.visited.has(cellKey)) return false;
+            
+            // Must be adjacent to last cell in path
+            if (gameState.path.length > 0) {
+                const lastCell = gameState.path[gameState.path.length - 1];
+                const distance = Math.abs(x - lastCell.x) + Math.abs(y - lastCell.y);
+                if (distance !== 1) return false;
+            }
+            
+            return true;
+        }
+
+        function visitCell(x, y) {
+            const cell = getCellAt(x, y);
+            const cellKey = `${x},${y}`;
+            const cellNumber = parseInt(cell.dataset.number);
+            
+            // Add to path and mark as visited
+            gameState.path.push({x, y});
+            gameState.visited.add(cellKey);
+            
+            // Update visual state
+            if (cellNumber === gameState.currentNumber) {
+                cell.classList.add('current');
+                gameState.currentNumber++;
+                updateNextNumber();
+                
+                // Mark previous current as visited
+                document.querySelectorAll('.current').forEach(c => {
+                    if (c !== cell) c.classList.remove('current');
+                });
+            } else {
+                cell.classList.add('path');
+            }
+            
+            // Check win condition
+            checkWinCondition();
+        }
+
+        function getCellAt(x, y) {
+            return document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+        }
+
+        function updateNextNumber() {
+            nextNumberEl.textContent = gameState.currentNumber <= 6 ? gameState.currentNumber : '✓';
+        }
+
+        function checkWinCondition() {
+            // Win if we've visited the last number and covered all non-wall cells
+            if (gameState.currentNumber > 6) {
+                const totalCells = PUZZLE.size * PUZZLE.size;
+                const wallCount = PUZZLE.walls.length;
+                const requiredCells = totalCells - wallCount;
+                
+                if (gameState.visited.size === requiredCells) {
+                    gameState.gameWon = true;
+                    winMessage.style.display = 'block';
+                    
+                    // Add celebration animation
+                    setTimeout(() => {
+                        document.querySelectorAll('.cell.current, .cell.path').forEach((cell, i) => {
+                            setTimeout(() => {
+                                cell.style.animation = 'pulse 0.5s ease';
+                            }, i * 50);
+                        });
+                    }, 200);
+                }
+            }
+        }
+
+        function resetGame() {
+            gameState = {
+                currentNumber: 1,
+                path: [],
+                visited: new Set(),
+                isDrawing: false,
+                gameWon: false
+            };
+            
+            // Reset visual state
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('current', 'path', 'visited', 'hover');
+                cell.style.animation = '';
+            });
+            
+            winMessage.style.display = 'none';
+            updateNextNumber();
+        }
+
+        function showHint() {
+            if (gameState.gameWon) return;
+            
+            // Highlight the current number to find
+            const targetNumber = gameState.currentNumber;
+            const targetCell = document.querySelector(`[data-number="${targetNumber}"]`);
+            
+            if (targetCell) {
+                targetCell.style.animation = 'pulse 1s ease 3';
+            }
+        }
+
+        // Add CSS animation for hints and celebrations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html> 
