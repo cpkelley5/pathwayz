@@ -1,0 +1,70 @@
+# Puzzle Game Development Rules
+
+## Project Overview
+Pathwayz - Path-finding puzzle game (LinkedIn Zip inspired) - React + TypeScript + Supabase + TailwindCSS
+
+## Success Strategy: Prototype-First Development
+Always build the simplest working version first, then enhance incrementally.
+Deploy and test on mobile device after every significant change.
+
+## Before Starting Work
+1. Read `CURRENT_STATE.md` for project status
+2. Read `TASK_CONTEXT.md` for current session goals
+3. Focus on ONE deliverable at a time
+4. If stuck >30 minutes, implement simpler version first
+
+## Code Standards
+- **TypeScript strict mode** - no `any` types
+- **React functional components** only
+- **TailwindCSS utility classes** only
+- **Mobile-first responsive** design
+- **60fps animations** for path drawing
+- **Comprehensive testing** for game logic
+
+## Game Rules
+- Start at number 1, visit numbers sequentially (1→2→3→...→8)
+- Cover every non-wall cell exactly once
+- Adjacent moves only (no diagonal)
+- Touch targets minimum 44px for mobile
+
+## File Structure
+```
+src/
+├── core/          # Pure game logic
+├── components/    # UI components
+├── hooks/         # Custom hooks
+├── utils/         # Utilities
+├── types/         # TypeScript types
+└── services/      # Supabase integration
+```
+
+## Key Performance Requirements
+- Page load < 2 seconds
+- Smooth path drawing on mobile
+- Bundle size < 1MB
+- Test coverage > 80% for core logic
+
+## Quality Gates
+Run `npm run dev && npm run test && npm run build` before finishing work.
+
+## AI Success Patterns
+- If stuck on complex algorithm >30 minutes, implement simple version first
+- Always test on mobile device/emulator before marking task complete
+- Use React DevTools to verify no performance issues
+- If touch events aren't smooth, try different event handling approach
+- Prioritize working code over perfect code - optimize later
+- Deploy to preview environment after each session
+
+## Complexity Escape Hatches
+- Puzzle generation: Use preset puzzles if algorithm is complex
+- Path validation: Start with basic validation, enhance incrementally
+- Animations: CSS transitions before complex animations
+- State management: useState before useReducer for simple cases
+
+## What NOT to Do
+- Don't skip TypeScript errors
+- Don't use localStorage (use Supabase)
+- Don't ignore mobile experience
+- Don't trust client-side validation for competitive features
+
+Focus on working code over perfect documentation.
