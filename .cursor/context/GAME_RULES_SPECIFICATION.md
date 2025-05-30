@@ -28,6 +28,14 @@
 - **Simultaneous**: Both conditions must be met simultaneously
 - **No Partial Wins**: 35/36 cells is NOT a win, even with all numbers
 
+### **Post-Win Behavior**
+- **Game Freeze**: Once won, game state is preserved and frozen
+- **No Reset on Lift**: Lifting finger/mouse after win does NOT reset the game
+- **Drawing Disabled**: Cannot start new paths or modify existing path
+- **Manual Reset Only**: Only Reset or New Game buttons can restart
+- **UI State Change**: Hint button disappears, New Game button appears
+- **Victory Preservation**: Win message and celebration remain visible
+
 ### **Movement After Final Number**
 - **Continue Drawing**: After reaching number 6, can continue drawing path
 - **No New Numbers**: Cannot target any more numbered cells
@@ -80,12 +88,16 @@ gameState = {
 - `canBacktrack(x, y)`: Check if backtracking is allowed
 - `backtrackToCell(x, y)`: Remove path back to specified cell
 - `checkWinCondition()`: Verify both numbers and cells complete
+- `resetGame()`: Reset all game state and UI elements
+- `newGame()`: Generate new puzzle (Phase A+) or reset current (Phase 0)
 
 ### **Event Handling**
-- **mousedown/touchstart**: Begin drawing if valid start cell
-- **mousemove/touchmove**: Continue path or backtrack
-- **mouseup/touchend**: Clear path and reset (hold-to-draw)
+- **mousedown/touchstart**: Begin drawing if valid start cell (unless game won)
+- **mousemove/touchmove**: Continue path or backtrack (unless game won)
+- **mouseup/touchend**: Clear path and reset (unless game won - then preserve state)
 - **Enhanced touch detection**: Calculate nearest cell on miss
+- **Reset button**: Always resets game regardless of state
+- **New Game button**: Appears after win, generates new puzzle (future)
 
 ## Phase 0 Validation Results ✅
 
@@ -94,6 +106,7 @@ gameState = {
 - Hold-to-draw behavior (path clears on lift)
 - Backtracking along existing path
 - Strict win condition (all numbers + all cells)
+- Post-win game freeze and state preservation
 - Mobile touch sensitivity with enhancements
 - Puzzle solvability verification
 

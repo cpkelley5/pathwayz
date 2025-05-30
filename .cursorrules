@@ -37,6 +37,8 @@ Deploy and test on mobile device after every significant change.
 - Backtracking decrements current number when crossing numbered cells
 - Enhanced touch detection for mobile responsiveness
 - No partial wins (35/36 cells is NOT a win)
+- Game freezes on win - no reset when lifting finger/mouse
+- Post-win UI changes: hide hint, show new game button
 
 ## File Structure
 ```
