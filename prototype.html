@@ -200,6 +200,7 @@
         <div class="status">
             <div class="status-text">Find number:</div>
             <div class="next-number" id="next-number">1</div>
+            <div id="debug-info" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
         </div>
 
         <div class="grid" id="game-grid"></div>
@@ -337,6 +338,23 @@
                 if (isValidMove(x, y)) {
                     visitCell(x, y);
                 }
+            } else if (gameState.isDrawing) {
+                // Enhanced touch detection - check nearby cells if direct hit missed
+                const rect = grid.getBoundingClientRect();
+                const cellSize = rect.width / PUZZLE.size;
+                const relativeX = touch.clientX - rect.left;
+                const relativeY = touch.clientY - rect.top;
+                
+                // Calculate which cell we're closest to
+                const gridX = Math.floor(relativeX / cellSize);
+                const gridY = Math.floor(relativeY / cellSize);
+                
+                // Check if coordinates are valid and within grid
+                if (gridX >= 0 && gridX < PUZZLE.size && gridY >= 0 && gridY < PUZZLE.size) {
+                    if (isValidMove(gridX, gridY)) {
+                        visitCell(gridX, gridY);
+                    }
+                }
             }
         }
 
@@ -417,14 +435,19 @@
 
         function checkWinCondition() {
             // Win if we've visited the last number and covered all non-wall cells
+            const totalCells = PUZZLE.size * PUZZLE.size;
+            const wallCount = PUZZLE.walls.length;
+            const requiredCells = totalCells - wallCount;
+            
+            // Update debug info
+            const debugEl = document.getElementById('debug-info');
+            debugEl.textContent = `Cells: ${gameState.visited.size}/${requiredCells} | Numbers: ${gameState.currentNumber-1}/6`;
+            
             if (gameState.currentNumber > 6) {
-                const totalCells = PUZZLE.size * PUZZLE.size;
-                const wallCount = PUZZLE.walls.length;
-                const requiredCells = totalCells - wallCount;
-                
                 if (gameState.visited.size === requiredCells) {
                     gameState.gameWon = true;
                     winMessage.style.display = 'block';
+                    debugEl.textContent = 'COMPLETED! 🎉';
                     
                     // Add celebration animation
                     setTimeout(() => {
