@@ -16,11 +16,12 @@
 - **Continuous Path**: Path must be unbroken from start to current position
 
 ### **Backtracking Mechanics**
-- **Sequential Only**: Can only backtrack along existing path
-- **Leading Edge**: Must backtrack from the current "leading edge" of path
+- **Sequential Only**: Can only backtrack to the immediately previous cell in path
+- **No Skipping**: Cannot jump to earlier cells even if adjacent and visited
+- **One Step Back**: Each backtrack action removes exactly one cell from path end
 - **Number Decrement**: Backtracking past a numbered cell decrements current target
 - **Visual Reset**: Backtracked cells lose their path highlighting
-- **Full Reset Allowed**: Can backtrack all the way to beginning (number 1)
+- **Repeated Backtracking**: Can continue backtracking one step at a time to beginning
 
 ### **Win Condition (STRICT)**
 - **ALL Numbers**: Must visit all 6 numbers in sequence (6/6)
@@ -85,8 +86,8 @@ gameState = {
 ### **Critical Functions**
 - `isPuzzleSolveable()`: Verify puzzle has valid solution
 - `isValidMove(x, y)`: Check if move is allowed
-- `canBacktrack(x, y)`: Check if backtracking is allowed
-- `backtrackToCell(x, y)`: Remove path back to specified cell
+- `canBacktrack(x, y)`: Check if can backtrack to immediately previous cell
+- `backtrackToCell(x, y)`: Remove last cell from path (single step back)
 - `checkWinCondition()`: Verify both numbers and cells complete
 - `resetGame()`: Reset all game state and UI elements
 - `newGame()`: Generate new puzzle (Phase A+) or reset current (Phase 0)
@@ -104,7 +105,7 @@ gameState = {
 ### **Confirmed Working**
 - Sequential number visiting (1→2→3→4→5→6)
 - Hold-to-draw behavior (path clears on lift)
-- Backtracking along existing path
+- Sequential backtracking (one step back only, no skipping)
 - Strict win condition (all numbers + all cells)
 - Post-win game freeze and state preservation
 - Mobile touch sensitivity with enhancements

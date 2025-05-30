@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.5.0 - Game Freeze Fix</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.6.0 - Sequential Backtracking</div>
         </div>
 
         <div class="status">
@@ -639,48 +639,36 @@
         function canBacktrack(x, y) {
             if (gameState.path.length <= 1) return false;
             
-            // Can only backtrack to a cell that's already in our path
-            const cellKey = `${x},${y}`;
-            return gameState.visited.has(cellKey);
+            // Can only backtrack to the immediately previous cell in the path
+            const lastIndex = gameState.path.length - 1;
+            const previousCell = gameState.path[lastIndex - 1]; // One step back in path
+            
+            return previousCell && previousCell.x === x && previousCell.y === y;
         }
 
         function backtrackToCell(x, y) {
-            const targetKey = `${x},${y}`;
+            // Since we only allow backtracking to the previous cell, just remove the last cell
+            if (gameState.path.length <= 1) return;
             
-            // Find the index of this cell in our path
-            let targetIndex = -1;
-            for (let i = gameState.path.length - 1; i >= 0; i--) {
-                const pathKey = `${gameState.path[i].x},${gameState.path[i].y}`;
-                if (pathKey === targetKey) {
-                    targetIndex = i;
-                    break;
-                }
+            const lastCell = gameState.path[gameState.path.length - 1];
+            const cellKey = `${lastCell.x},${lastCell.y}`;
+            const cellElement = getCellAt(lastCell.x, lastCell.y);
+            
+            // Remove from visited set
+            gameState.visited.delete(cellKey);
+            
+            // Reset visual state
+            cellElement.classList.remove('current', 'path', 'visited');
+            
+            // Check if this cell had a number
+            const cellNumber = parseInt(cellElement.dataset.number);
+            if (cellNumber && cellNumber === gameState.currentNumber - 1) {
+                // We're backtracking past a number, so decrement currentNumber
+                gameState.currentNumber--;
             }
             
-            if (targetIndex === -1) return;
-            
-            // Remove cells from the end of the path back to the target
-            for (let i = gameState.path.length - 1; i > targetIndex; i--) {
-                const cell = gameState.path[i];
-                const cellKey = `${cell.x},${cell.y}`;
-                const cellElement = getCellAt(cell.x, cell.y);
-                
-                // Remove from visited set
-                gameState.visited.delete(cellKey);
-                
-                // Reset visual state
-                cellElement.classList.remove('current', 'path', 'visited');
-                
-                // Check if this cell had a number
-                const cellNumber = parseInt(cellElement.dataset.number);
-                if (cellNumber && cellNumber === gameState.currentNumber - 1) {
-                    // We're backtracking past a number, so decrement currentNumber
-                    gameState.currentNumber--;
-                }
-            }
-            
-            // Trim the path array
-            gameState.path = gameState.path.slice(0, targetIndex + 1);
+            // Remove from path array
+            gameState.path.pop();
             
             // Update current number display
             updateNextNumber();
