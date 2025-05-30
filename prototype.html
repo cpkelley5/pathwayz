@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.6.0 - Sequential Backtracking</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.7.0 - Immediate Game Freeze</div>
         </div>
 
         <div class="status">
@@ -320,6 +320,10 @@
 
         function handleCellStart(e) {
             e.preventDefault();
+            
+            // Prevent any interaction if game is won
+            if (gameState.gameWon) return;
+            
             const cell = e.target;
             const x = parseInt(cell.dataset.x);
             const y = parseInt(cell.dataset.y);
@@ -332,7 +336,7 @@
         }
 
         function handleCellEnter(e) {
-            if (!gameState.isDrawing) return;
+            if (!gameState.isDrawing || gameState.gameWon) return;
             
             const cell = e.target;
             const x = parseInt(cell.dataset.x);
@@ -347,6 +351,10 @@
 
         function handleTouchMove(e) {
             e.preventDefault();
+            
+            // Prevent any interaction if game is won
+            if (gameState.gameWon) return;
+            
             const touch = e.touches[0];
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
             
@@ -473,8 +481,14 @@
                 cell.classList.add('path');
             }
             
-            // Check win condition
+            // Check win condition IMMEDIATELY and freeze if won
             checkWinCondition();
+            
+            // If game was just won, stop all further interaction
+            if (gameState.gameWon) {
+                gameState.isDrawing = false;
+                return;
+            }
         }
 
         function getCellAt(x, y) {
@@ -647,6 +661,9 @@
         }
 
         function backtrackToCell(x, y) {
+            // Prevent backtracking if game is won
+            if (gameState.gameWon) return;
+            
             // Since we only allow backtracking to the previous cell, just remove the last cell
             if (gameState.path.length <= 1) return;
             

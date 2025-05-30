@@ -30,7 +30,8 @@
 - **No Partial Wins**: 35/36 cells is NOT a win, even with all numbers
 
 ### **Post-Win Behavior**
-- **Game Freeze**: Once won, game state is preserved and frozen
+- **Immediate Game Freeze**: Game state freezes instantly upon meeting win condition
+- **All Interaction Blocked**: No drawing, backtracking, or path modification allowed
 - **No Reset on Lift**: Lifting finger/mouse after win does NOT reset the game
 - **Drawing Disabled**: Cannot start new paths or modify existing path
 - **Manual Reset Only**: Only Reset or New Game buttons can restart
@@ -107,7 +108,7 @@ gameState = {
 - Hold-to-draw behavior (path clears on lift)
 - Sequential backtracking (one step back only, no skipping)
 - Strict win condition (all numbers + all cells)
-- Post-win game freeze and state preservation
+- Immediate post-win game freeze (no delayed interaction)
 - Mobile touch sensitivity with enhancements
 - Puzzle solvability verification
 
