@@ -40,6 +40,31 @@ Deploy and test on mobile device after every significant change.
 - Game freezes on win - no reset when lifting finger/mouse
 - Post-win UI changes: hide hint, show new game button
 
+## Making Code Changes - MANDATORY STEPS
+
+When making code changes, NEVER output code to the USER, unless requested. Instead use one of the code edit tools to implement the change.
+
+**For ANY Game Logic Changes (REQUIRED):**
+1. Make the code change
+2. **IMMEDIATELY update GAME_RULES_SPECIFICATION.md** 
+3. Update .cursorrules "Critical Game Logic" section if needed
+4. Commit both code AND documentation changes together
+5. Note the change in commit message
+
+**Game Logic includes:**
+- Movement rules, win conditions, input handling
+- UI behavior, state management, event responses  
+- Touch interactions, backtracking, path drawing
+- Post-win behavior, reset mechanics, validation
+
+**Documentation Update Process:**
+- Add new mechanics to appropriate sections
+- Update "Phase 0 Validation Results" if tested
+- Modify "Critical Functions" if new functions added
+- Update "Event Handling" if event behavior changes
+
+It is *EXTREMELY* important that your generated code can be run immediately by the USER. To ensure this, follow these instructions carefully:
+
 ## File Structure
 ```
 src/
@@ -59,6 +84,23 @@ src/
 
 ## Quality Gates
 Run `npm run dev && npm run test && npm run build` before finishing work.
+
+**Before Completing ANY Task with Game Logic Changes:**
+- [ ] Code change implemented and tested
+- [ ] GAME_RULES_SPECIFICATION.md updated with new/changed mechanics
+- [ ] .cursorrules updated if critical game logic changed
+- [ ] Both code and documentation committed together
+- [ ] Commit message describes both code and documentation changes
+
+**Documentation Check Questions:**
+- Does this change how the user interacts with the game?
+- Does this change win/lose conditions or game state?
+- Does this change touch/mouse behavior or event handling?
+- Does this add/remove/modify core game mechanics?
+
+If YES to any → MUST update GAME_RULES_SPECIFICATION.md
+
+**Never finish a session without updating documentation for game logic changes.**
 
 ## AI Success Patterns
 - If stuck on complex algorithm >30 minutes, implement simple version first
