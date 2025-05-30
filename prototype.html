@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.3.0 - Solveable Puzzle</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.4.0 - Fixed Win Logic</div>
         </div>
 
         <div class="status">
@@ -221,12 +221,12 @@
         const PUZZLE = {
             size: 6,
             numbers: [
-                {num: 1, x: 0, y: 0},  // Top-left corner
-                {num: 2, x: 5, y: 0},  // Top-right corner  
-                {num: 3, x: 5, y: 5},  // Bottom-right corner
-                {num: 4, x: 0, y: 5},  // Bottom-left corner
-                {num: 5, x: 2, y: 2},  // Center area
-                {num: 6, x: 3, y: 3}   // Near center
+                {num: 1, x: 0, y: 0},  // Start top-left
+                {num: 2, x: 1, y: 0},  // Move right
+                {num: 3, x: 2, y: 0},  // Continue right
+                {num: 4, x: 3, y: 0},  // Continue right
+                {num: 5, x: 4, y: 0},  // Continue right
+                {num: 6, x: 5, y: 0}   // End top-right
             ],
             walls: [
                 // No walls for Phase 0 - ensures solvability
@@ -424,6 +424,9 @@
         function isValidMove(x, y) {
             if (gameState.gameWon) return false;
             
+            // Stop drawing after reaching the final number
+            if (gameState.currentNumber > 6) return false;
+            
             const cell = getCellAt(x, y);
             if (!cell || cell.classList.contains('wall')) return false;
             
@@ -473,7 +476,13 @@
         }
 
         function updateNextNumber() {
-            nextNumberEl.textContent = gameState.currentNumber <= 6 ? gameState.currentNumber : '✓';
+            if (gameState.currentNumber <= 6) {
+                nextNumberEl.textContent = gameState.currentNumber;
+            } else {
+                nextNumberEl.textContent = '✓';
+                nextNumberEl.style.color = '#10b981';  // Green color
+                document.querySelector('.status-text').textContent = 'Cover all cells:';
+            }
         }
 
         function checkWinCondition() {
@@ -486,21 +495,20 @@
             const debugEl = document.getElementById('debug-info');
             debugEl.textContent = `Cells: ${gameState.visited.size}/${requiredCells} | Numbers: ${gameState.currentNumber-1}/6`;
             
-            if (gameState.currentNumber > 6) {
-                if (gameState.visited.size === requiredCells) {
-                    gameState.gameWon = true;
-                    winMessage.style.display = 'block';
-                    debugEl.textContent = 'COMPLETED! 🎉';
-                    
-                    // Add celebration animation
-                    setTimeout(() => {
-                        document.querySelectorAll('.cell.current, .cell.path').forEach((cell, i) => {
-                            setTimeout(() => {
-                                cell.style.animation = 'pulse 0.5s ease';
-                            }, i * 50);
-                        });
-                    }, 200);
-                }
+            // Win only if we have ALL numbers AND ALL cells
+            if (gameState.currentNumber > 6 && gameState.visited.size === requiredCells) {
+                gameState.gameWon = true;
+                winMessage.style.display = 'block';
+                debugEl.textContent = 'COMPLETED! 🎉';
+                
+                // Add celebration animation
+                setTimeout(() => {
+                    document.querySelectorAll('.cell.current, .cell.path').forEach((cell, i) => {
+                        setTimeout(() => {
+                            cell.style.animation = 'pulse 0.5s ease';
+                        }, i * 50);
+                    });
+                }, 200);
             }
         }
 
