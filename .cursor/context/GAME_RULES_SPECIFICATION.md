@@ -19,6 +19,8 @@
 - **Sequential Only**: Can only backtrack to the immediately previous cell in path
 - **No Skipping**: Cannot jump to earlier cells even if adjacent and visited
 - **One Step Back**: Each backtrack action removes exactly one cell from path end
+- **Prioritized Detection**: Touch/mouse detection prioritizes backtracking over forward movement
+- **Enhanced Sensitivity**: Same responsive touch detection as forward movement
 - **Number Decrement**: Backtracking past a numbered cell decrements current target
 - **Visual Reset**: Backtracked cells lose their path highlighting
 - **Repeated Backtracking**: Can continue backtracking one step at a time to beginning
@@ -106,7 +108,7 @@ gameState = {
 ### **Confirmed Working**
 - Sequential number visiting (1→2→3→4→5→6)
 - Hold-to-draw behavior (path clears on lift)
-- Sequential backtracking (one step back only, no skipping)
+- Enhanced sequential backtracking (prioritized, responsive sensitivity)
 - Strict win condition (all numbers + all cells)
 - Immediate post-win game freeze (no delayed interaction)
 - Mobile touch sensitivity with enhancements

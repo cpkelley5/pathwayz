@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.7.0 - Immediate Game Freeze</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.8.0 - Enhanced Backtrack UX</div>
         </div>
 
         <div class="status">
@@ -346,6 +346,8 @@
                 visitCell(x, y);
             } else if (canBacktrack(x, y)) {
                 backtrackToCell(x, y);
+                // Add visual feedback for backtracking
+                cell.classList.add('hover');
             }
         }
 
@@ -362,10 +364,11 @@
                 const x = parseInt(element.dataset.x);
                 const y = parseInt(element.dataset.y);
                 
-                if (isValidMove(x, y)) {
-                    visitCell(x, y);
-                } else if (canBacktrack(x, y)) {
+                // Prioritize backtracking if possible, then forward movement  
+                if (canBacktrack(x, y)) {
                     backtrackToCell(x, y);
+                } else if (isValidMove(x, y)) {
+                    visitCell(x, y);
                 }
             } else if (gameState.isDrawing) {
                 // Enhanced touch detection - check nearby cells if direct hit missed
@@ -380,10 +383,11 @@
                 
                 // Check if coordinates are valid and within grid
                 if (gridX >= 0 && gridX < PUZZLE.size && gridY >= 0 && gridY < PUZZLE.size) {
-                    if (isValidMove(gridX, gridY)) {
-                        visitCell(gridX, gridY);
-                    } else if (canBacktrack(gridX, gridY)) {
+                    // Prioritize backtracking if possible, then forward movement
+                    if (canBacktrack(gridX, gridY)) {
                         backtrackToCell(gridX, gridY);
+                    } else if (isValidMove(gridX, gridY)) {
+                        visitCell(gridX, gridY);
                     }
                 }
             }
