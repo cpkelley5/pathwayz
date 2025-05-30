@@ -195,6 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.2.0 - Phase 0</div>
         </div>
 
         <div class="status">
@@ -254,6 +255,20 @@
         function initGame() {
             createGrid();
             resetGame();
+            
+            // Verify puzzle is solveable
+            console.log('Checking if puzzle is solveable...');
+            const solveable = isPuzzleSolveable();
+            console.log('Puzzle solveable:', solveable);
+            
+            if (!solveable) {
+                console.warn('WARNING: Current puzzle may not be solveable!');
+                const debugEl = document.getElementById('debug-info');
+                if (debugEl) {
+                    debugEl.textContent = '⚠️ Puzzle may not be solveable';
+                    debugEl.style.color = 'red';
+                }
+            }
             
             // Add event listeners
             resetBtn.addEventListener('click', resetGame);
@@ -324,6 +339,8 @@
             
             if (isValidMove(x, y)) {
                 visitCell(x, y);
+            } else if (canBacktrack(x, y)) {
+                backtrackToCell(x, y);
             }
         }
 
@@ -361,12 +378,35 @@
 
         function handleCellEnd(e) {
             e.preventDefault();
-            gameState.isDrawing = false;
+            
+            if (gameState.isDrawing) {
+                // User lifted finger/mouse - clear the path and reset
+                clearPath();
+                gameState.isDrawing = false;
+            }
             
             // Remove hover effects
             document.querySelectorAll('.cell').forEach(cell => {
                 cell.classList.remove('hover');
             });
+        }
+
+        function clearPath() {
+            // Reset game state
+            gameState.path = [];
+            gameState.visited = new Set();
+            gameState.currentNumber = 1;
+            gameState.gameWon = false;
+            
+            // Reset visual state
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('current', 'path', 'visited', 'hover');
+            });
+            
+            // Update UI
+            updateNextNumber();
+            winMessage.style.display = 'none';
+            checkWinCondition();
         }
 
         function isValidStartCell(x, y) {
@@ -502,6 +542,119 @@
             }
         `;
         document.head.appendChild(style);
+
+        // Verify puzzle is solveable
+        function isPuzzleSolveable() {
+            const totalCells = PUZZLE.size * PUZZLE.size - PUZZLE.walls.length;
+            const numberPositions = {};
+            PUZZLE.numbers.forEach(num => numberPositions[num.num] = {x: num.x, y: num.y});
+            
+            function isValidPosition(x, y) {
+                return x >= 0 && x < PUZZLE.size && y >= 0 && y < PUZZLE.size && 
+                       !PUZZLE.walls.some(wall => wall.x === x && wall.y === y);
+            }
+            
+            function findPath(currentPos, targetNum, visited, path) {
+                if (targetNum > 6) {
+                    // All numbers visited, check if we've covered all cells
+                    return visited.size === totalCells;
+                }
+                
+                const target = numberPositions[targetNum];
+                const directions = [[0,1], [0,-1], [1,0], [-1,0]];
+                
+                // Try to reach the next number
+                function dfs(x, y, targetX, targetY, localVisited, localPath) {
+                    if (x === targetX && y === targetY) {
+                        // Found the target number, continue to next
+                        const newVisited = new Set([...visited, ...localVisited]);
+                        const newPath = [...path, ...localPath];
+                        return findPath({x: targetX, y: targetY}, targetNum + 1, newVisited, newPath);
+                    }
+                    
+                    for (let [dx, dy] of directions) {
+                        const nx = x + dx, ny = y + dy;
+                        const key = `${nx},${ny}`;
+                        
+                        if (isValidPosition(nx, ny) && !visited.has(key) && !localVisited.has(key)) {
+                            localVisited.add(key);
+                            localPath.push({x: nx, y: ny});
+                            
+                            if (dfs(nx, ny, targetX, targetY, localVisited, localPath)) {
+                                return true;
+                            }
+                            
+                            localVisited.delete(key);
+                            localPath.pop();
+                        }
+                    }
+                    return false;
+                }
+                
+                const startKey = `${currentPos.x},${currentPos.y}`;
+                const startVisited = new Set([startKey]);
+                const startPath = [{x: currentPos.x, y: currentPos.y}];
+                
+                return dfs(currentPos.x, currentPos.y, target.x, target.y, startVisited, startPath);
+            }
+            
+            const start = numberPositions[1];
+            const startVisited = new Set([`${start.x},${start.y}`]);
+            return findPath(start, 2, startVisited, [start]);
+        }
+
+        function canBacktrack(x, y) {
+            if (gameState.path.length <= 1) return false;
+            
+            // Can only backtrack to a cell that's already in our path
+            const cellKey = `${x},${y}`;
+            return gameState.visited.has(cellKey);
+        }
+
+        function backtrackToCell(x, y) {
+            const targetKey = `${x},${y}`;
+            
+            // Find the index of this cell in our path
+            let targetIndex = -1;
+            for (let i = gameState.path.length - 1; i >= 0; i--) {
+                const pathKey = `${gameState.path[i].x},${gameState.path[i].y}`;
+                if (pathKey === targetKey) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            
+            if (targetIndex === -1) return;
+            
+            // Remove cells from the end of the path back to the target
+            for (let i = gameState.path.length - 1; i > targetIndex; i--) {
+                const cell = gameState.path[i];
+                const cellKey = `${cell.x},${cell.y}`;
+                const cellElement = getCellAt(cell.x, cell.y);
+                
+                // Remove from visited set
+                gameState.visited.delete(cellKey);
+                
+                // Reset visual state
+                cellElement.classList.remove('current', 'path', 'visited');
+                
+                // Check if this cell had a number
+                const cellNumber = parseInt(cellElement.dataset.number);
+                if (cellNumber && cellNumber === gameState.currentNumber - 1) {
+                    // We're backtracking past a number, so decrement currentNumber
+                    gameState.currentNumber--;
+                }
+            }
+            
+            // Trim the path array
+            gameState.path = gameState.path.slice(0, targetIndex + 1);
+            
+            // Update current number display
+            updateNextNumber();
+            
+            // Update debug info
+            checkWinCondition();
+        }
 
         // Start the game
         initGame();
