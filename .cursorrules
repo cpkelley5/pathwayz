@@ -10,8 +10,9 @@ Deploy and test on mobile device after every significant change.
 ## Before Starting Work
 1. Read `CURRENT_STATE.md` for project status
 2. Read `TASK_CONTEXT.md` for current session goals
-3. Focus on ONE deliverable at a time
-4. If stuck >30 minutes, implement simpler version first
+3. Read `GAME_RULES_SPECIFICATION.md` for complete validated game mechanics
+4. Focus on ONE deliverable at a time
+5. If stuck >30 minutes, implement simpler version first
 
 ## Code Standards
 - **TypeScript strict mode** - no `any` types
@@ -21,11 +22,21 @@ Deploy and test on mobile device after every significant change.
 - **60fps animations** for path drawing
 - **Comprehensive testing** for game logic
 
-## Game Rules
-- Start at number 1, visit numbers sequentially (1→2→3→...→8)
-- Cover every non-wall cell exactly once
+## Game Rules - VALIDATED IN PHASE 0 ✅
+- Start at number 1, visit numbers sequentially (1→2→3→...→6)
+- Hold-to-draw: path clears when finger/mouse lifts
+- Backtracking: sequential only along existing path
+- Win condition: ALL numbers (6/6) AND ALL cells covered
 - Adjacent moves only (no diagonal)
 - Touch targets minimum 44px for mobile
+- Must verify puzzle solvability before implementation
+
+## Critical Game Logic (DO NOT CHANGE)
+- Movement stops after reaching final number (6)
+- Win requires BOTH all numbers AND all cells (strict)
+- Backtracking decrements current number when crossing numbered cells
+- Enhanced touch detection for mobile responsiveness
+- No partial wins (35/36 cells is NOT a win)
 
 ## File Structure
 ```
