@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.4.0 - Fixed Win Logic</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.5.0 - Game Freeze Fix</div>
         </div>
 
         <div class="status">
@@ -209,6 +209,7 @@
         <div class="controls">
             <button class="btn btn-secondary" id="reset-btn">Reset</button>
             <button class="btn btn-primary" id="hint-btn">Hint</button>
+            <button class="btn btn-primary" id="new-game-btn" style="display: none;">New Game</button>
         </div>
 
         <div class="win-message" id="win-message">
@@ -247,6 +248,7 @@
         const nextNumberEl = document.getElementById('next-number');
         const resetBtn = document.getElementById('reset-btn');
         const hintBtn = document.getElementById('hint-btn');
+        const newGameBtn = document.getElementById('new-game-btn');
         const winMessage = document.getElementById('win-message');
 
         // Initialize game
@@ -271,6 +273,7 @@
             // Add event listeners
             resetBtn.addEventListener('click', resetGame);
             hintBtn.addEventListener('click', showHint);
+            newGameBtn.addEventListener('click', newGame);
             
             // Prevent scrolling on touch
             document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
@@ -381,9 +384,12 @@
         function handleCellEnd(e) {
             e.preventDefault();
             
-            if (gameState.isDrawing) {
-                // User lifted finger/mouse - clear the path and reset
+            if (gameState.isDrawing && !gameState.gameWon) {
+                // Only clear path if game is not won
                 clearPath();
+                gameState.isDrawing = false;
+            } else if (gameState.gameWon) {
+                // Game is won - just stop drawing, don't clear
                 gameState.isDrawing = false;
             }
             
@@ -501,6 +507,10 @@
                 winMessage.style.display = 'block';
                 debugEl.textContent = 'COMPLETED! 🎉';
                 
+                // Update button visibility
+                hintBtn.style.display = 'none';
+                newGameBtn.style.display = 'inline-block';
+                
                 // Add celebration animation
                 setTimeout(() => {
                     document.querySelectorAll('.cell.current, .cell.path').forEach((cell, i) => {
@@ -527,8 +537,21 @@
                 cell.style.animation = '';
             });
             
+            // Reset UI elements
             winMessage.style.display = 'none';
+            hintBtn.style.display = 'inline-block';
+            newGameBtn.style.display = 'none';
+            document.querySelector('.status-text').textContent = 'Find number:';
+            nextNumberEl.style.color = '#4f46e5';  // Reset to original color
+            
             updateNextNumber();
+            checkWinCondition();
+        }
+
+        function newGame() {
+            // For Phase 0, just reset the same puzzle
+            // In Phase A+, this will generate a new puzzle
+            resetGame();
         }
 
         function showHint() {
