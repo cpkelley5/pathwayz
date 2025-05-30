@@ -195,7 +195,7 @@
         <div class="header">
             <div class="title">Pathwayz</div>
             <div class="subtitle">Connect 1→2→3→4→5→6 covering all cells</div>
-            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.2.0 - Phase 0</div>
+            <div style="font-size: 10px; color: #999; margin-top: 4px;">v0.3.0 - Solveable Puzzle</div>
         </div>
 
         <div class="status">
@@ -221,17 +221,15 @@
         const PUZZLE = {
             size: 6,
             numbers: [
-                {num: 1, x: 0, y: 0},
-                {num: 2, x: 2, y: 1}, 
-                {num: 3, x: 4, y: 2},
-                {num: 4, x: 1, y: 3},
-                {num: 5, x: 3, y: 4},
-                {num: 6, x: 5, y: 5}
+                {num: 1, x: 0, y: 0},  // Top-left corner
+                {num: 2, x: 5, y: 0},  // Top-right corner  
+                {num: 3, x: 5, y: 5},  // Bottom-right corner
+                {num: 4, x: 0, y: 5},  // Bottom-left corner
+                {num: 5, x: 2, y: 2},  // Center area
+                {num: 6, x: 3, y: 3}   // Near center
             ],
             walls: [
-                // Temporarily removed for Phase 0 testing
-                // {x: 1, y: 1},
-                // {x: 3, y: 2}
+                // No walls for Phase 0 - ensures solvability
             ]
         };
 
@@ -355,6 +353,8 @@
                 
                 if (isValidMove(x, y)) {
                     visitCell(x, y);
+                } else if (canBacktrack(x, y)) {
+                    backtrackToCell(x, y);
                 }
             } else if (gameState.isDrawing) {
                 // Enhanced touch detection - check nearby cells if direct hit missed
@@ -371,6 +371,8 @@
                 if (gridX >= 0 && gridX < PUZZLE.size && gridY >= 0 && gridY < PUZZLE.size) {
                     if (isValidMove(gridX, gridY)) {
                         visitCell(gridX, gridY);
+                    } else if (canBacktrack(gridX, gridY)) {
+                        backtrackToCell(gridX, gridY);
                     }
                 }
             }
